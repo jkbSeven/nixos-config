@@ -68,6 +68,7 @@
     vim # Nano editor is installed by default.
     git
     firefox
+    wireguard-tools
   ];
 
   programs.hyprland = {
