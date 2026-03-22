@@ -40,6 +40,10 @@
       l = "ls -la";
       vim = "nvim";
     };
+
+    sessionVariables = {
+      EDITOR = "nvim";
+    };
   };
 
   programs.zsh.oh-my-zsh = {
