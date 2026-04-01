@@ -152,7 +152,7 @@
 
       modules-left = [ "hyprland/workspaces" ];
       modules-center = [ "clock" ];
-      modules-right = [ "wireplumber" ];
+      modules-right = [ "wireplumber" "battery" ];
 
       clock = {
         format = "{:%H:%M, %F}";
@@ -189,6 +189,17 @@
 
         on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         on-click-right = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+      };
+
+      battery = {
+	      interval = 60;
+	      states = {
+		      warning = 30;
+		      critical = 15;
+	      };
+	      format = "{capacity}% {icon}";
+	      format-icons = [ "" "" "" "" "" ];
+	      max-length = 25;
       };
 
     };
