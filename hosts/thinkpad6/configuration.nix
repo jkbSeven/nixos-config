@@ -71,6 +71,8 @@
     wireguard-tools
   ];
 
+  environment.localBinInPath = true;
+
   programs.hyprland = {
     enable = true;
     withUWSM = true;
@@ -78,7 +80,7 @@
   };
 
   programs.waybar.enable = true;
-  
+
   programs.zsh.enable = true;
 
   programs._1password.enable = true;

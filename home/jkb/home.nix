@@ -27,6 +27,10 @@
     nerd-fonts.ubuntu-mono
   ];
 
+  home.file."${config.xdg.configHome}/tmux/tmux.conf".source = ../../dotfiles/tmux.conf;
+
+  home.file.".local/bin".source = ../../dotfiles/bin;
+
   programs.zsh = {
     enable = true;
 
@@ -41,7 +45,6 @@
       vim = "nvim";
       vpn-conn = "sudo wg-quick up wg0";  # requires wg0.conf in /etc/wireguard/
       vpn-dc = "sudo wg-quick down wg0";
-
     };
 
     sessionVariables = {
