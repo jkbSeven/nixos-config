@@ -90,6 +90,14 @@
     };
   };
 
+  programs.kitty = {
+      enable = true;
+      font = {
+          name = "UbuntuMono Nerd Font";
+          size = 16;
+      };
+  };
+
   programs.wofi.enable = true;
 
   wayland.windowManager.hyprland = {
@@ -101,7 +109,7 @@
     settings = {
       "$mod" = "SUPER";
 
-      "$terminal" = "alacritty";
+      "$terminal" = "kitty";
       "$fileManager" = "dolphin";
       "$menu" = "wofi";
 
