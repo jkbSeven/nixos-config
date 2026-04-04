@@ -18,10 +18,18 @@
     fzf
     jq
 
+    # neovim and dependencies/plugins
     neovim
-    fd # for neovim plugins
-    ripgrep # for neovim plugins
-    tree-sitter # for neovim
+    fd
+    ripgrep
+    lua-language-server
+    pyright
+    (tree-sitter.withPlugins (p: [
+        p.tree-sitter-lua
+        p.tree-sitter-python
+        p.tree-sitter-c
+    ]))
+
 
     # obsidian - fails to run as expects opengl drivers in the Nix-used /run/opengl_..., but they are installed with pacman
     nerd-fonts.ubuntu-mono
@@ -29,7 +37,10 @@
 
   home.file."${config.xdg.configHome}/tmux/tmux.conf".source = ../../dotfiles/tmux.conf;
 
-  home.file.".local/bin".source = ../../dotfiles/bin;
+  home.file.".local/bin" = {
+      source = ../../dotfiles/bin;
+      recursive = true;
+  };
 
   programs.zsh = {
     enable = true;
