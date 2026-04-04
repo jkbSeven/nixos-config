@@ -17,18 +17,8 @@
     tmux
     fzf
     jq
-
-    # neovim dependencies/plugins
     fd
     ripgrep
-    lua-language-server
-    pyright
-    (tree-sitter.withPlugins (p: [
-        p.tree-sitter-lua
-        p.tree-sitter-python
-        p.tree-sitter-c
-    ]))
-
 
     # obsidian - fails to run as expects opengl drivers in the Nix-used /run/opengl_..., but they are installed with pacman
     nerd-fonts.ubuntu-mono
@@ -99,8 +89,14 @@
 
   programs.neovim = {
       enable = true;
-      extraLuaPackages = ps: [ ps.magick ];
-      extraPackages = [ pkgs.imagemagick ];
+
+      # extraLuaPackages = ps: [ ps.magick ];
+
+      extraPackages = with pkgs; [
+          imagemagick
+          lua-language-server
+          pyright
+      ];
   };
 
   programs.wofi.enable = true;
