@@ -18,8 +18,7 @@
     fzf
     jq
 
-    # neovim and dependencies/plugins
-    neovim
+    # neovim dependencies/plugins
     fd
     ripgrep
     lua-language-server
@@ -96,6 +95,12 @@
           name = "UbuntuMono Nerd Font";
           size = 16;
       };
+  };
+
+  programs.neovim = {
+      enable = true;
+      extraLuaPackages = ps: [ ps.magick ];
+      extraPackages = [ pkgs.imagemagick ];
   };
 
   programs.wofi.enable = true;
