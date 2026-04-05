@@ -26,10 +26,10 @@
     brightnessctl
   ];
 
-  home.file."${config.xdg.configHome}/tmux/tmux.conf".source = ../../dotfiles/tmux.conf;
+  home.file."${config.xdg.configHome}/tmux/tmux.conf".source = ./dotfiles/tmux.conf;
 
   home.file.".local/bin" = {
-      source = ../../dotfiles/bin;
+      source = ./dotfiles/bin;
       recursive = true;
   };
 

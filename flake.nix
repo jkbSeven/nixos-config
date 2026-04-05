@@ -27,7 +27,7 @@
           inherit system;
           modules = [
             ./hosts/thinkpad6/configuration.nix
-            home-manager.nixosModules.home-manager { home-manager.users.jkb = import ./home/jkb/home.nix; }
+            home-manager.nixosModules.home-manager { home-manager.users.jkb = import ./home.nix; }
 	  ];
         };
       };
