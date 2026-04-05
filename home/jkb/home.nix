@@ -160,8 +160,10 @@
 
       input = {
         accel_profile = "flat";
-        # force_no_accel = true; # not recommended in Hyprland docs
         sensitivity = 0;
+        # force_no_accel = true; # not recommended in Hyprland docs
+
+        kb_layout = "pl";
       };
 
     };
