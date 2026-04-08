@@ -24,6 +24,8 @@
     nerd-fonts.ubuntu-mono
 
     brightnessctl
+
+    hyprpaper
   ];
 
   home.file."${config.xdg.configHome}/tmux/tmux.conf".source = ./dotfiles/tmux.conf;
@@ -153,6 +155,7 @@
 
       exec-once = [
         "waybar"
+        "hyprpaper"
       ];
 
       animation = [
@@ -175,6 +178,11 @@
       };
 
     };
+  };
+
+  xdg.configFile."hypr/hyprpaper.conf" = {
+      enable = true;
+      source = ./dotfiles/hyprpaper.conf;
   };
 
   programs.waybar = {
