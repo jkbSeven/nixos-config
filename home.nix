@@ -32,8 +32,8 @@
   home.file."${config.xdg.configHome}/tmux/tmux.conf".source = ./dotfiles/tmux.conf;
 
   home.file.".local/bin" = {
-      source = ./dotfiles/bin;
-      recursive = true;
+    source = ./dotfiles/bin;
+    recursive = true;
   };
 
   programs.zsh = {
@@ -48,7 +48,7 @@
       gs = "git status";
       l = "ls -la";
       vim = "nvim";
-      vpn-conn = "sudo wg-quick up wg0";  # requires wg0.conf in /etc/wireguard/
+      vpn-conn = "sudo wg-quick up wg0"; # requires wg0.conf in /etc/wireguard/
       vpn-dc = "sudo wg-quick down wg0";
     };
 
@@ -79,29 +79,29 @@
           family = "UbuntuMono Nerd Font";
           style = "Regular";
         };
-	size = 16;
+        size = 16;
       };
     };
   };
 
   programs.kitty = {
-      enable = true;
-      font = {
-          name = "UbuntuMono Nerd Font";
-          size = 16;
-      };
+    enable = true;
+    font = {
+      name = "UbuntuMono Nerd Font";
+      size = 16;
+    };
   };
 
   programs.neovim = {
-      enable = true;
+    enable = true;
 
-      # extraLuaPackages = ps: [ ps.magick ];
+    # extraLuaPackages = ps: [ ps.magick ];
 
-      extraPackages = with pkgs; [
-          imagemagick
-          lua-language-server
-          pyright
-      ];
+    extraPackages = with pkgs; [
+      imagemagick
+      lua-language-server
+      pyright
+    ];
   };
 
   programs.wofi.enable = true;

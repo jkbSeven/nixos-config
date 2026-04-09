@@ -1,8 +1,8 @@
-{config, pkgs, ...}:
+{ config, pkgs, ... }:
 
 {
   home.packages = with pkgs; [
-      hyprpaper
+    hyprpaper
   ];
 
   wayland.windowManager.hyprland = {
@@ -81,8 +81,8 @@
   };
 
   xdg.configFile."hypr/hyprpaper.conf" = {
-      enable = true;
-      source = ./../dotfiles/hyprpaper.conf;
+    enable = true;
+    source = ./../dotfiles/hyprpaper.conf;
   };
 
   programs.waybar = {
@@ -93,7 +93,10 @@
 
       modules-left = [ "hyprland/workspaces" ];
       modules-center = [ "clock" ];
-      modules-right = [ "wireplumber" "battery" ];
+      modules-right = [
+        "wireplumber"
+        "battery"
+      ];
 
       clock = {
         format = "{:%H:%M, %F}";
@@ -133,14 +136,20 @@
       };
 
       battery = {
-	      interval = 60;
-	      states = {
-		      warning = 30;
-		      critical = 15;
-	      };
-	      format = "{capacity}% {icon}";
-	      format-icons = [ "" "" "" "" "" ];
-	      max-length = 25;
+        interval = 60;
+        states = {
+          warning = 30;
+          critical = 15;
+        };
+        format = "{capacity}% {icon}";
+        format-icons = [
+          ""
+          ""
+          ""
+          ""
+          ""
+        ];
+        max-length = 25;
       };
 
     };

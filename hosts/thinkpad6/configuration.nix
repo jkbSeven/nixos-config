@@ -5,10 +5,10 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -26,10 +26,10 @@
 
   # Enable networking
   networking.networkmanager = {
-      enable = true;
-      plugins = with pkgs; [
-          networkmanager-openvpn
-      ];
+    enable = true;
+    plugins = with pkgs; [
+      networkmanager-openvpn
+    ];
   };
 
   time.timeZone = "Europe/Warsaw";
@@ -61,9 +61,12 @@
   users.users.jkb = {
     isNormalUser = true;
     description = "Jakub Olech";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     shell = pkgs.zsh;
-    packages = with pkgs; [];
+    packages = with pkgs; [ ];
   };
 
   nixpkgs.config.allowUnfree = true;
@@ -121,5 +124,8 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.11"; # Did you read the comment?
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 }
