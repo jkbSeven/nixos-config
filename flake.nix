@@ -33,6 +33,13 @@
         };
       };
 
+      templates = {
+        C = {
+          path = ./templates/C;
+          description = "Baseline C env for Linux with gcc and clang";
+        };
+      };
+
       formatter.${system} = pkgs.nixfmt;
     };
 }
