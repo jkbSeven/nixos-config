@@ -31,6 +31,26 @@
             { home-manager.users.jkb = import ./home.nix; }
           ];
         };
+
+        vm1 = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            hostname = "nixos-vm1";
+          };
+
+          modules = [
+            ./hosts/vm.nix
+          ];
+        };
+
+        vm2 = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            hostname = "nixos-vm2";
+          };
+
+          modules = [ ./hosts/vm.nix ];
+        };
       };
 
       templates = {
