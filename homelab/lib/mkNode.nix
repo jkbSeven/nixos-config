@@ -12,7 +12,7 @@ let
 in
 {
 
-  imports = modules ++ map (role: root + "/modules/homelab/roles/${role}.nix") node.roles;
+  imports = modules ++ map (role: root + "/homelab/modules/roles/${role}.nix") node.roles;
 
   networking.hostName = name;
 
