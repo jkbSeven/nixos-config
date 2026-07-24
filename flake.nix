@@ -29,12 +29,12 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
-      mylib = import ./modules/lib;
-      inventory = import ./inventory.nix;
-      users = import ./users.nix;
+      mylib = import ./homelab/lib;
+      inventory = import ./homelab/inventory.nix;
+      users = import ./homelab/users.nix;
       mkNode = mylib.mkNode {
         inherit users inventory;
-        modules = [ ./modules/homelab ./hosts/vm.nix ];
+        modules = [ ./homelab/modules ./hosts/vm.nix ];
         root = self;
       };
     in
