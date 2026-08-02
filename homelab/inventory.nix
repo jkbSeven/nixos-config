@@ -54,4 +54,22 @@ Future extensions:
     };
 
   };
+
+  extraProxyVHosts = {
+    "proxmox" = {
+      locations."/" = {
+        proxyPass = "https://proxmox.srv.jkb7.dev:8006";
+        proxyWebsockets = true;
+        extraConfig = "proxy_pass_header Authorization;";
+      };
+    };
+
+    "photos" = {
+      locations."/" = {
+        proxyPass = "http://immich.srv.jkb7.dev:30041";
+        proxyWebsockets = true;
+        extraConfig = "proxy_pass_header Authorization;";
+      };
+    };
+  };
 }
