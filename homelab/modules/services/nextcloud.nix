@@ -70,6 +70,7 @@ in
       };
     };
 
+    networking.nftables.enable = true;
     networking.firewall.extraInputRules = ''
       ip saddr ${config.homelab.settings.proxyIp} tcp dport 80 accept
     '';
