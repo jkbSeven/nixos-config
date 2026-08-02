@@ -28,6 +28,15 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
+
+      mylib = import ./homelab/lib;
+      inventory = import ./homelab/inventory.nix;
+      users = import ./homelab/users.nix;
+      mkNode = mylib.mkNode {
+        inherit users inventory;
+        modules = [ ./homelab/modules ./hosts/vm.nix ];
+        root = self;
+      };
     in
     {
       nixosConfigurations = {
@@ -65,61 +74,14 @@
         };
       };
 
-      colmenaHive = colmena.lib.makeHive {
+      colmenaHive = colmena.lib.makeHive ({
         meta = {
           nixpkgs = import nixpkgs {
             system = "x86_64-linux";
             overlays = [ ];
           };
         };
-
-        nginx =
-          { name, ... }:
-          {
-            imports = [
-              ./hosts/vm.nix
-              ./hosts/homelab/nginx-revproxy.nix
-            ];
-
-            networking.hostName = name;
-
-            deployment.targetUser = "admin";
-          };
-
-        nextcloud =
-          { name, ... }:
-          {
-            imports = [
-              ./hosts/vm.nix
-              ./hosts/homelab/nextcloud.nix
-            ];
-
-            networking.hostName = name;
-
-            deployment.targetUser = "admin";
-          };
-
-        control-plane =
-          { name, config, ... }:
-          {
-            imports = [
-              ./hosts/vm.nix
-              ./modules/homelab
-            ];
-
-            networking.hostName = name;
-
-            homelab.monitoring.enable = true;
-            homelab.services.victoria-metrics = {
-              enable = true;
-              nodes = ["localhost"];
-            };
-            homelab.services.grafana.enable = true;
-
-
-            deployment.targetUser = "admin";
-          };
-      };
+      } // builtins.mapAttrs mkNode inventory.nodes);
 
       formatter.${system} = pkgs.nixfmt;
     };
