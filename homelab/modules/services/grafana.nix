@@ -65,6 +65,6 @@ in
     };
 
     networking.nftables.enable = true;
-    networking.firewall.extraInputRules = "ip saddr ${config.homelab.settings.proxyIp} tcp dport ${cfg.port} accept";
+    networking.firewall.extraInputRules = "ip saddr ${config.homelab.settings.proxyIp} tcp dport ${builtins.toString cfg.port} accept";
   };
 }
