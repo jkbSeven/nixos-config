@@ -26,6 +26,20 @@ in
     proxyIp = lib.ipFromRole "proxy" inventory;
   };
 
+  services.prometheus.exporters.node = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  homelab.monitoring.scrapeTargets = [
+    {
+      job_name = "node";
+      static_configs = [{
+        targets = [ "${fqdn}:9100" ];
+      }];
+    }
+  ];
+
   deployment = {
     # if targetHost = null, then colmena doesn't deploy it with `colmena apply`
     # but the node is still evaluated, which is exactly what we need
