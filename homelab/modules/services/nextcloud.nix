@@ -8,6 +8,7 @@
 let
   cfg = config.homelab.services.nextcloud;
   domain = config.homelab.settings.domain;
+  maxUploadSize = "8G";
 in
 {
   options.homelab.services.nextcloud.enable = lib.mkEnableOption "Enable nextcloud service";
@@ -34,6 +35,7 @@ in
 
       hostName = "drive.${domain}";
       datadir = "/mnt/nextcloud_data";
+      maxUploadSize = maxUploadSize;
 
       config.adminpassFile = "/var/lib/secrets/nextcloud";
       config.dbtype = "pgsql";
@@ -63,10 +65,25 @@ in
     };
 
     homelab.proxy.virtualHosts."drive.${domain}" = {
+      /*
+      Added to mitigate "Unknown error" for big uploads in nextcloud
+        client_max_body_size ${maxUploadSize};
+        proxy_request_buffering off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+      */
+      extraConfig = ''
+        client_max_body_size ${maxUploadSize};
+      '';
       locations."/" = {
         proxyPass = "http://${config.homelab.settings.thisNodeFqdn}";
         proxyWebsockets = true;
-        extraConfig = "proxy_pass_header Authorization;";
+        extraConfig = ''
+          proxy_pass_header Authorization;
+          proxy_request_buffering off;
+          proxy_read_timeout 3600s;
+          proxy_send_timeout 3600s;
+        '';
       };
     };
 
