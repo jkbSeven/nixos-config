@@ -65,10 +65,23 @@ Future extensions:
     };
 
     "photos" = {
+      /*
+      Added to mitigate ambiguous errors when uploading big files:
+          client_max_body_size 4G;
+          proxy_request_buffering off;
+          proxy_read_timeout 3600s;
+          proxy_send_timeout 3600s;
+      */
       locations."/" = {
         proxyPass = "http://immich.srv.jkb7.dev:30041";
         proxyWebsockets = true;
-        extraConfig = "proxy_pass_header Authorization;";
+        extraConfig = ''
+          client_max_body_size 4G;
+          proxy_request_buffering off;
+          proxy_read_timeout 3600s;
+          proxy_send_timeout 3600s;
+          proxy_pass_header Authorization;
+        '';
       };
     };
   };
