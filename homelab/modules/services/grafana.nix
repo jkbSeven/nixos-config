@@ -12,11 +12,6 @@ in
   options.homelab.services.grafana = {
     enable = lib.mkEnableOption "Enable Grafana that interacts with VictoriaMetrics";
 
-    secret = lib.mkOption {
-      type = lib.types.str;
-      default = "/var/lib/secrets/grafana";
-    };
-
     port = lib.mkOption {
       type = lib.types.int;
       default = 3000;
@@ -45,7 +40,7 @@ in
 
       settings = {
         analytics.reporting_enable = false;
-        security.secret_key = cfg.secret;
+        security.secret_key = "/run/keys/grafana.secret";
 
         server = {
           http_addr = "0.0.0.0";
@@ -55,6 +50,26 @@ in
 
       };
     };
+
+    /*
+      Handling secret for Grafana
+    */
+    deployment.keys."grafana.secret" = {
+      keyCommand = [ "op" "read" "op://homelab/Grafana/secret"];
+
+      destDir = "/run/keys";
+      user = "grafana";
+      permissions = "0400";
+      uploadAt = "pre-activation";
+    };
+
+    systemd.services.grafana = {
+      after = [ "grafana.secret-key.service" ];
+      wants = [ "grafana.secret-key.service" ];
+    };
+    /*
+      End of handling secret for Grafana
+    */
 
     homelab.proxy.virtualHosts."grafana.${domain}" = {
       locations."/" = {

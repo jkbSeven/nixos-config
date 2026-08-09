@@ -37,9 +37,18 @@ in
       datadir = "/mnt/nextcloud_data";
       maxUploadSize = maxUploadSize;
 
-      config.adminpassFile = "/var/lib/secrets/nextcloud";
+      config.adminpassFile = "/run/keys/nextcloud.secret";
       config.dbtype = "pgsql";
       database.createLocally = true;
+    };
+
+    deployment.keys."nextcloud.secret" = {
+      keyCommand = [ "op" "read" "op://homelab/Nextcloud Admin/password"];
+
+      destDir = "/run/keys";
+      user = "nextcloud";
+      permissions = "0400";
+      uploadAt = "pre-activation";
     };
 
     systemd.services.remotefs-tmpfiles = {
@@ -55,8 +64,14 @@ in
     };
 
     systemd.services.nextcloud-setup = {
-      after = [ "remotefs-tmpfiles.service" ];
-      requires = [ "remotefs-tmpfiles.service" ];
+      after = [
+        "remotefs-tmpfiles.service"
+        "nextcloud.secret-key.service"
+      ];
+      requires = [
+        "remotefs-tmpfiles.service"
+        "nextcloud.secret-key.service"
+      ];
     };
 
     systemd.services.phpfpm-nextcloud = {
