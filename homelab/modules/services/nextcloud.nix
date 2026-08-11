@@ -8,6 +8,7 @@
 let
   cfg = config.homelab.services.nextcloud;
   domain = config.homelab.settings.domain;
+  secretsDir = config.homelab.settings.secretsDir;
   maxUploadSize = "8G";
 in
 {
@@ -37,15 +38,15 @@ in
       datadir = "/mnt/nextcloud_data";
       maxUploadSize = maxUploadSize;
 
-      config.adminpassFile = "/run/keys/nextcloud.secret";
+      config.adminpassFile = "${secretsDir}/nextcloud.secret";
       config.dbtype = "pgsql";
       database.createLocally = true;
     };
 
     deployment.keys."nextcloud.secret" = {
-      keyCommand = [ "op" "read" "op://homelab/Nextcloud Admin/password"];
+      keyCommand = [ "op" "read" "op://homelab/Nextcloud/password"];
 
-      destDir = "/run/keys";
+      destDir = secretsDir;
       user = "nextcloud";
       permissions = "0400";
       uploadAt = "pre-activation";
@@ -64,14 +65,8 @@ in
     };
 
     systemd.services.nextcloud-setup = {
-      after = [
-        "remotefs-tmpfiles.service"
-        "nextcloud.secret-key.service"
-      ];
-      requires = [
-        "remotefs-tmpfiles.service"
-        "nextcloud.secret-key.service"
-      ];
+      after = [ "remotefs-tmpfiles.service" ];
+      requires = [ "remotefs-tmpfiles.service" ];
     };
 
     systemd.services.phpfpm-nextcloud = {

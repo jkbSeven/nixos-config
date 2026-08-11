@@ -21,6 +21,8 @@ in
     users = users;
     domain = inventory.domain;
 
+    secretsDir = "/var/lib/secrets";
+
     thisNode = node;
     thisNodeFqdn = fqdn;
     proxyIp = lib.ipFromRole "proxy" inventory;

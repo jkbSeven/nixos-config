@@ -7,6 +7,7 @@
 let
   cfg = config.homelab.services.grafana;
   domain = config.homelab.settings.domain;
+  secretsDir = config.homelab.settings.secretsDir;
 in
 {
   options.homelab.services.grafana = {
@@ -40,7 +41,7 @@ in
 
       settings = {
         analytics.reporting_enable = false;
-        security.secret_key = "/run/keys/grafana.secret";
+        security.secret_key = "${secretsDir}/grafana.secret";
 
         server = {
           http_addr = "0.0.0.0";
@@ -51,25 +52,14 @@ in
       };
     };
 
-    /*
-      Handling secret for Grafana
-    */
     deployment.keys."grafana.secret" = {
       keyCommand = [ "op" "read" "op://homelab/Grafana/secret"];
 
-      destDir = "/run/keys";
+      destDir = secretsDir;
       user = "grafana";
       permissions = "0400";
       uploadAt = "pre-activation";
     };
-
-    systemd.services.grafana = {
-      after = [ "grafana.secret-key.service" ];
-      wants = [ "grafana.secret-key.service" ];
-    };
-    /*
-      End of handling secret for Grafana
-    */
 
     homelab.proxy.virtualHosts."grafana.${domain}" = {
       locations."/" = {
