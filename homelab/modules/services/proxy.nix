@@ -8,6 +8,7 @@
 let
   cfg = config.homelab.services.proxy;
   domain = config.homelab.settings.domain;
+  secretsDir = config.homelab.settings.secretsDir;
 
   defaultVHostConfig = {
     forceSSL = true;
@@ -31,7 +32,7 @@ in
       defaults = {
         email = "Jacob202@pm.me";
         dnsProvider = "cloudflare";
-        environmentFile = "/var/lib/secrets/cloudflare";
+        environmentFile = "${secretsDir}/cloudflare";
       };
 
       certs = {
@@ -40,6 +41,16 @@ in
           group = "nginx";
         };
       };
+    };
+
+    deployment.keys."cloudflare" = {
+      keyCommand = [ "op" "read" "op://homelab/cloudflare-dns-token/credential"];
+
+      destDir = secretsDir;
+      user = "acme";
+      group = "nginx";
+      permissions = "0640";
+      uploadAt = "pre-activation";
     };
 
     services.nginx = {

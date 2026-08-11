@@ -27,14 +27,18 @@
     }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
+
+      forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
 
       mylib = import ./homelab/lib;
       inventory = import ./homelab/inventory.nix;
       users = import ./homelab/users.nix;
       mkNode = mylib.mkNode {
         inherit users inventory;
-        modules = [ ./homelab/modules ./hosts/vm.nix ];
+        modules = [
+          ./homelab/modules
+          ./hosts/vm.nix
+        ];
         root = self;
       };
     in
@@ -74,15 +78,41 @@
         };
       };
 
-      colmenaHive = colmena.lib.makeHive ({
-        meta = {
-          nixpkgs = import nixpkgs {
-            system = "x86_64-linux";
-            overlays = [ ];
+      colmenaHive = colmena.lib.makeHive (
+        {
+          meta = {
+            nixpkgs = import nixpkgs {
+              system = "x86_64-linux";
+              overlays = [ ];
+            };
           };
-        };
-      } // builtins.mapAttrs mkNode inventory.nodes);
+        }
+        // builtins.mapAttrs mkNode inventory.nodes
+      );
 
-      formatter.${system} = pkgs.nixfmt;
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        rec {
+          default = deploy;
+          deploy = pkgs.mkShellNoCC {
+            packages = [
+              pkgs.colmena
+              pkgs.guestfs-tools # for virt-customize
+              pkgs.just
+            ];
+          };
+        }
+      );
+
+      formatter = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        pkgs.nixfmt
+      );
     };
 }

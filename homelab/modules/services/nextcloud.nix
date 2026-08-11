@@ -8,6 +8,7 @@
 let
   cfg = config.homelab.services.nextcloud;
   domain = config.homelab.settings.domain;
+  secretsDir = config.homelab.settings.secretsDir;
   maxUploadSize = "8G";
 in
 {
@@ -37,9 +38,18 @@ in
       datadir = "/mnt/nextcloud_data";
       maxUploadSize = maxUploadSize;
 
-      config.adminpassFile = "/var/lib/secrets/nextcloud";
+      config.adminpassFile = "${secretsDir}/nextcloud.secret";
       config.dbtype = "pgsql";
       database.createLocally = true;
+    };
+
+    deployment.keys."nextcloud.secret" = {
+      keyCommand = [ "op" "read" "op://homelab/Nextcloud/password"];
+
+      destDir = secretsDir;
+      user = "nextcloud";
+      permissions = "0400";
+      uploadAt = "pre-activation";
     };
 
     systemd.services.remotefs-tmpfiles = {
