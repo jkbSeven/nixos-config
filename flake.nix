@@ -14,6 +14,11 @@
       url = "github:zhaofengli/colmena/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    terranix = {
+      url = "github:terranix/terranix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -23,6 +28,7 @@
       nixpkgs-unstable,
       home-manager,
       colmena,
+      terranix,
       ...
     }:
     let
@@ -75,6 +81,15 @@
         C = {
           path = ./templates/C;
           description = "Baseline C env for Linux with gcc and clang";
+        };
+      };
+
+      infra = {
+        production = terranix.lib.terranixConfiguration {
+          inherit system;
+          modules = [
+            ./homelab/deploy/config.nix
+          ];
         };
       };
 
