@@ -36,17 +36,22 @@
 
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
 
-      mylib = import ./homelab/lib;
+      /*
+        Homelab variables and functions
+      */
+      libHomelab = import ./homelab/lib;
       inventory = import ./homelab/inventory.nix;
-      users = import ./homelab/users.nix;
-      mkNode = mylib.mkNode {
-        inherit users inventory;
+      mkNode = libHomelab.mkNode {
+        inherit inventory;
         modules = [
           ./homelab/modules
           ./hosts/vm.nix
         ];
         root = self;
       };
+      /*
+        End of homelab variables and functions
+      */
     in
     {
       nixosConfigurations = {
@@ -90,6 +95,10 @@
           modules = [
             ./homelab/deploy/config.nix
           ];
+          extraArgs = {
+            inherit (self.colmenaHive) nodes;
+            inherit inventory;
+          };
         };
       };
 

@@ -55,6 +55,13 @@ Future extensions:
 
   };
 
+  users = {
+    nextcloud = {
+      uid = 4000;
+      gid = 4000;
+    };
+  };
+
   extraProxyVHosts = {
     "proxmox" = {
       locations."/" = {
