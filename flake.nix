@@ -19,6 +19,11 @@
       url = "github:terranix/terranix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -29,6 +34,7 @@
       home-manager,
       colmena,
       terranix,
+      agenix,
       ...
     }:
     let
@@ -126,6 +132,7 @@
               pkgs.colmena
               pkgs.guestfs-tools # for virt-customize
               pkgs.just
+              agenix.packages.${system}.default
             ];
           };
         }
