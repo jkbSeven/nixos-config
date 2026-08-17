@@ -1,21 +1,14 @@
 /*
-Source of truth for all homelab nodes.
-
-A role is a set of toggles for homelab services, e.g. "proxy" for nginx, "monitoring" for VictoriaMetrics + Grafana.
-Machines are provisioned through terraform (terranix), hence the `vm` attribute set.
-
-Future extensions:
-- VPN mesh (adds `meshIp` and enables multi-cloud setups)
-- Config options for moving some nodes to public cloud (cloud = { provider; instanceType; })
+  Source of truth for homelab infrastructure.
 */
 
-{
+rec {
   domain = "jkb7.dev";
-  nodes = {
 
+  nodes = {
     proxy = {
       ip = "10.10.10.223";
-      roles = [ "proxy" ];
+      roles = [ roles.proxy ];
       vm = {
         cores = 2;
         memory = 4096;
@@ -26,7 +19,7 @@ Future extensions:
 
     monitoring = {
       ip = "10.10.10.163";
-      roles = [ "monitoring" ];
+      roles = [ roles.monitoring ];
       vm = {
         cores = 4;
         memory = 4096;
@@ -37,7 +30,7 @@ Future extensions:
 
     drive = {
       ip = "10.10.10.77";
-      roles = [ "nextcloud" ];
+      roles = [ roles.nextcloud ];
       vm = {
         cores = 2;
         memory = 4096;
@@ -61,6 +54,10 @@ Future extensions:
       gid = 4000;
     };
   };
+
+  roles = builtins.listToAttrs (
+    map (roleName: { name = roleName; value = roleName; }) ["proxy" "monitoring" "nextcloud"]
+  );
 
   extraProxyVHosts = {
     "proxmox" = {
