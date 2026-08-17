@@ -132,6 +132,7 @@
               pkgs.colmena
               pkgs.guestfs-tools # for virt-customize
               pkgs.just
+              pkgs.jq
               agenix.packages.${system}.default
             ];
           };
