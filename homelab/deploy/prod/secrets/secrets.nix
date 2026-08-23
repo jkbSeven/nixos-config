@@ -1,6 +1,8 @@
 let
-  libHomelab = import ./../lib;
-  inventory = import ./../inventory.nix;
+  root = ./../../..;
+  envRoot = ./..;
+  libHomelab = import (root + "/lib");
+  inventory = import (envRoot + "/inventory.nix");
   nodes = inventory.nodes;
   roles = inventory.roles;
 
@@ -10,12 +12,8 @@ let
   nixosNodes = libHomelab.filterAttrs (nodeName: nodeConfig: nodeConfig.vm != null) nodes;
   nixosNodesNames = builtins.attrNames nixosNodes;
 
-  privateKeyPerNode = builtins.listToAttrs (
-    map (nodeName: { name = "node-${nodeName}.host_ssh.age"; value = { publicKeys = admins; }; }) nixosNodesNames
-  );
-
   publicKeyPerNode = builtins.listToAttrs (
-    map (nodeName: { name = nodeName; value = (builtins.readFile (./. + "/node-${nodeName}.host_ssh.pub")); }) nixosNodesNames
+    map (nodeName: { name = nodeName; value = (builtins.readFile (envRoot + "/keys" + "/node-${nodeName}.host_ssh.pub")); }) nixosNodesNames
   );
 
   publicKeyForRole = role: publicKeyPerNode."${(libHomelab.nodeFromRole role inventory).name}";
@@ -25,4 +23,3 @@ in
   "cloudflare-dns.age".publicKeys = admins ++ [ (publicKeyForRole roles.proxy) ];
   "nextcloud.age".publicKeys = admins ++ [ (publicKeyForRole roles.nextcloud) ];
 }
-// privateKeyPerNode
