@@ -7,20 +7,10 @@ default_switch_config := if host == "nixos-pc" {
     "unsupported"
 }
 
-# bootstrap homelab infrastructure
-[group('homelab')]
-bootstrap:
-    @printf 'Not implemented :(\n'
-    @exit 1
-
-# deploy changes to homelab nodes
-[arg('targets', long)]
-[group('homelab')]
-deploy targets='*' :
-    colmena apply --on '{{ targets }}'
+env_pattern := "stg|prod"
 
 # generate ssh key pair for each homelab node for a given environment
-[arg('env', long, pattern='stg|prod')]
+[arg('env', long, pattern=env_pattern)]
 [group('homelab')]
 gen-keys env="stg":
     #!/bin/sh
@@ -40,7 +30,7 @@ gen-keys env="stg":
         key_path="${key_dir}/node-${node}.host_ssh"
 
         if [ -f $key_path ]; then
-            printf 'WARNING: key for node %s already exists at %s\n' "$node" "$key_path"
+            printf 'WARNING: key for node %s already exists at %s, not overwriting\n' "$node" "$key_path"
             continue
         fi
 
@@ -49,6 +39,71 @@ gen-keys env="stg":
         ssh-keygen -q -t ed25519 -N "" -C "Node: $node" -f $key_path || exit 1
     done
 
+# bulid qcow2 images for homelab nodes
+[arg('env', long, pattern=env_pattern)]
+[group('homelab')]
+build-images env="stg":
+    #!/bin/sh
+
+    printf 'INFO: building baseline vm image\n'
+
+    # default output name is 'result'
+    nix build .#nixosConfigurations.vm-base.config.system.build.images.qemu || exit 1
+
+    env_dir="./homelab/deploy/{{ env }}"
+    mkdir -p $env_dir || exit 1
+
+    # FIXME: filter non-nixos nodes
+    if ! nodes=$(nix eval --json --file "${env_dir}/inventory.nix" --apply 'builtins.attrNames' nodes | jq -r '.[]'); then
+        exit 1
+    fi
+
+    images_dir="${env_dir}/images"
+    mkdir -p "$images_dir" || exit 1
+
+    for node in $nodes; do
+        image_path="${images_dir}/${node}.qcow2"
+
+        if [ -f "${image_path}" ]; then
+            printf 'WARNING: image for node %s already exists at %s, not overwriting\n' "$node" "$image_path"
+            continue
+        fi
+
+        printf 'INFO: copying baseline image to %s\n' "$image_path"
+        cp result/nixos*.qcow2 "$image_path" || exit 1
+        chmod 0600 "$image_path" || exti 1
+    done
+
+# inject host ssh key into each node's qcow2 image
+[arg('env', long, pattern=env_pattern)]
+[group('homelab')]
+inject-ssh-keys env="stg":
+    #!/bin/sh
+
+    env_dir="./homelab/deploy/{{ env }}"
+    if [ ! -d "$env_dir" ]; then
+        printf 'Deployment dir for env "%s" does not exist, you need to build qcow images first\n' {{ env }}
+        exit 1
+    fi
+
+    # FIXME: filter non-nixos nodes
+    if ! nodes=$(nix eval --json --file "${env_dir}/inventory.nix" --apply 'builtins.attrNames' nodes | jq -r '.[]'); then
+        exit 1
+    fi
+
+    for node in $nodes; do
+        image_path="${env_dir}/images/${node}.qcow2"
+        priv_key_path="${env_dir}/keys/node-${node}.host_ssh"
+        pub_key_path="${env_dir}/keys/node-${node}.host_ssh.pub"
+
+        printf 'INFO: injecting ssh keys for node %s\n' "$node"
+        guestfish --add "$image_path" --rw --file <(sed "s#SED_PRIVATE_KEY_PATH#${priv_key_path}#" ./homelab/deploy/inject_ssh.guestfish | sed "s#SED_PUBLIC_KEY_PATH#${pub_key_path}#") || exit 1
+    done
+
+# bootstrap homelab infrastructure
+[arg('env', long, pattern=env_pattern)]
+[group('homelab')]
+bootstrap env="stg": (build-images env) (gen-keys env) (inject-ssh-keys env)
 
 # switch to new nixos configuration on the current host
 switch config=default_switch_config:

@@ -123,14 +123,14 @@
       devShells = forAllSystems (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = import nixpkgs-unstable { inherit system; };
         in
         rec {
           default = deploy;
           deploy = pkgs.mkShellNoCC {
             packages = [
               pkgs.colmena
-              pkgs.guestfs-tools # for virt-customize
+              pkgs.libguestfs-with-appliance # for guestfish
               pkgs.just
               pkgs.jq
               agenix.packages.${system}.default
