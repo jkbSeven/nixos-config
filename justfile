@@ -76,8 +76,9 @@ build-images env="stg":
 
 # inject host ssh key into each node's qcow2 image
 [arg('env', long, pattern=env_pattern)]
+[arg('preserve_priv_keys', long="preserve-private-keys", value="1")]
 [group('homelab')]
-inject-ssh-keys env="stg":
+inject-ssh-keys env="stg" preserve_priv_keys="0":
     #!/bin/sh
 
     env_dir="./homelab/deploy/{{ env }}"
@@ -98,6 +99,11 @@ inject-ssh-keys env="stg":
 
         printf 'INFO: injecting ssh keys for node %s\n' "$node"
         guestfish --add "$image_path" --rw --file <(sed "s#SED_PRIVATE_KEY_PATH#${priv_key_path}#" ./homelab/deploy/inject_ssh.guestfish | sed "s#SED_PUBLIC_KEY_PATH#${pub_key_path}#") || exit 1
+
+        if [ 0 -eq "{{ preserve_priv_keys }}" ]; then
+            printf 'INFO: shreding private ssh key for node %s\n' "$node"
+            shred -u "$priv_key_path" || exit 1
+        fi
     done
 
 # bootstrap homelab infrastructure
