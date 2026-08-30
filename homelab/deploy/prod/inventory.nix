@@ -2,12 +2,17 @@
   Source of truth for homelab infrastructure.
 */
 
+let
+  baseProxmoxMAC = "BC:24:11";
+  baseIP = "10.10.10";
+in
 rec {
   domain = "jkb7.dev";
 
   nodes = {
     proxy = {
-      ip = "10.10.10.223";
+      ip = "${baseIP}.223";
+      mac = "${baseProxmoxMAC}:00:00:01";
       roles = [ roles.proxy ];
       vm = {
         cores = 2;
@@ -18,7 +23,8 @@ rec {
     };
 
     monitoring = {
-      ip = "10.10.10.163";
+      ip = "${baseIP}.163";
+      mac = "${baseProxmoxMAC}:00:00:02";
       roles = [ roles.monitoring ];
       vm = {
         cores = 4;
@@ -29,7 +35,8 @@ rec {
     };
 
     drive = {
-      ip = "10.10.10.77";
+      ip = "${baseIP}.77";
+      mac = "${baseProxmoxMAC}:00:00:03";
       roles = [ roles.nextcloud ];
       vm = {
         cores = 2;
@@ -40,7 +47,8 @@ rec {
     };
 
     nas = {
-      ip = "10.10.10.11";
+      ip = "${baseIP}.11";
+      mac = "c8:ff:bf:03:7c:fc";
       roles = [ ];
       vm = null; # not managed through terraform
       tags = [ ];
