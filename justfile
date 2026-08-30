@@ -167,6 +167,17 @@ ls-nodes env="stg":
 
     printf '%s\n' $nodes
 
+# deploy infra changes for a given environment (colmena + tf)
+[arg('env', long, pattern=env_pattern)]
+[group('homelab')]
+deploy env="stg":
+    nix build -o homelab/deploy/{{ env }}/config.tf.json.tmp .#infra.{{ env }}.tf
+    cp homelab/deploy/{{ env }}/config.tf.json.tmp homelab/deploy/{{ env }}/config.tf.json
+    rm homelab/deploy/{{ env }}/config.tf.json.tmp
+
+    terraform -chdir=homelab/deploy/{{ env }} apply
+    colmena apply -f homelab/deploy/{{ env }}/hive.nix
+
 # switch to new nixos configuration on the current host
 switch config=default_switch_config:
     #!/bin/sh

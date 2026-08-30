@@ -38,16 +38,13 @@
       ...
     }:
     let
-      system = "x86_64-linux";
-
+      linuxSystem = "x86_64-linux";
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
-
-      libHomelab = import ./homelab/lib;
     in
     {
       nixosConfigurations = {
         thinkpad6 = nixpkgs-unstable.lib.nixosSystem {
-          inherit system;
+          system = linuxSystem;
           modules = [
             ./hosts/thinkpad6/configuration.nix
             home-manager.nixosModules.home-manager
@@ -56,7 +53,7 @@
         };
 
         pc = nixpkgs-unstable.lib.nixosSystem {
-          inherit system;
+          system = linuxSystem;
           modules = [
             ./hosts/pc/configuration.nix
             home-manager.nixosModules.home-manager
@@ -65,7 +62,7 @@
         };
 
         vm-base = nixpkgs.lib.nixosSystem {
-          inherit system;
+          system = linuxSystem;
 
           modules = [
             ./hosts/vm.nix
@@ -75,24 +72,24 @@
 
       infra = {
         prod = {
-          colmena = colmena.lib.makeHive ({
+          colmena = {
             meta = {
               nixpkgs = import nixpkgs {
-                system = "x86_64-linux";
+                system = linuxSystem;
                 overlays = [ ];
               };
             };
-          }
+          };
           # // builtins.mapAttrs mkNode inventory.nodes
-          );
 
           tf = terranix.lib.terranixConfiguration {
-            inherit system;
+            system = linuxSystem;
             modules = [
-              ./homelab/deploy/config.nix
+              ./homelab/deploy/prod/tf.nix
             ];
             extraArgs = {
-              inherit (self.infra.prod.colmena) nodes;
+              inventory = import ./homelab/deploy/prod/inventory.nix;
+              nodes = colmena.lib.makeHive self.infra.prod.colmena;
             };
           };
         };
