@@ -42,9 +42,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
 
-      /*
-        Homelab variables and functions
-      */
+      # Homelab variables and functions
       libHomelab = import ./homelab/lib;
       inventory = import ./homelab/inventory.nix;
       mkNode = libHomelab.mkNode {
@@ -55,9 +53,7 @@
         ];
         root = self;
       };
-      /*
-        End of homelab variables and functions
-      */
+      # End of homelab variables and functions
     in
     {
       nixosConfigurations = {
@@ -123,16 +119,28 @@
       devShells = forAllSystems (
         system:
         let
-          pkgs = import nixpkgs-unstable { inherit system; };
+          pkgs = import nixpkgs-unstable {
+            inherit system;
+            config.allowUnfreePredicate =
+              pkg:
+              builtins.elem (nixpkgs-unstable.lib.getName pkg) [
+                "terraform"
+              ];
+          };
         in
         rec {
           default = deploy;
           deploy = pkgs.mkShellNoCC {
             packages = [
-              pkgs.colmena
-              pkgs.libguestfs-with-appliance # for guestfish
               pkgs.just
               pkgs.jq
+
+              pkgs.colmena
+              pkgs.libguestfs-with-appliance # for guestfish
+              (pkgs.terraform.withPlugins (p: [
+                p.bpg_proxmox
+                p.ubiquiti-community_unifi
+              ]))
               agenix.packages.${system}.default
             ];
           };
