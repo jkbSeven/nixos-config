@@ -42,18 +42,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
 
-      # Homelab variables and functions
       libHomelab = import ./homelab/lib;
-      inventory = import ./homelab/inventory.nix;
-      mkNode = libHomelab.mkNode {
-        inherit inventory;
-        modules = [
-          ./homelab/modules
-          ./hosts/vm.nix
-        ];
-        root = self;
-      };
-      # End of homelab variables and functions
     in
     {
       nixosConfigurations = {
@@ -84,37 +73,30 @@
         };
       };
 
-      templates = {
-        C = {
-          path = ./templates/C;
-          description = "Baseline C env for Linux with gcc and clang";
-        };
-      };
-
       infra = {
-        production = terranix.lib.terranixConfiguration {
-          inherit system;
-          modules = [
-            ./homelab/deploy/config.nix
-          ];
-          extraArgs = {
-            inherit (self.colmenaHive) nodes;
-            inherit inventory;
-          };
-        };
-      };
+        prod = {
+          colmena = colmena.lib.makeHive ({
+            meta = {
+              nixpkgs = import nixpkgs {
+                system = "x86_64-linux";
+                overlays = [ ];
+              };
+            };
+          }
+          # // builtins.mapAttrs mkNode inventory.nodes
+          );
 
-      colmenaHive = colmena.lib.makeHive (
-        {
-          meta = {
-            nixpkgs = import nixpkgs {
-              system = "x86_64-linux";
-              overlays = [ ];
+          tf = terranix.lib.terranixConfiguration {
+            inherit system;
+            modules = [
+              ./homelab/deploy/config.nix
+            ];
+            extraArgs = {
+              inherit (self.infra.prod.colmena) nodes;
             };
           };
-        }
-        // builtins.mapAttrs mkNode inventory.nodes
-      );
+        };
+      };
 
       devShells = forAllSystems (
         system:
@@ -146,6 +128,13 @@
           };
         }
       );
+
+      templates = {
+        C = {
+          path = ./templates/C;
+          description = "Baseline C env for Linux with gcc and clang";
+        };
+      };
 
       formatter = forAllSystems (
         system:
