@@ -40,6 +40,8 @@
     let
       linuxSystem = "x86_64-linux";
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
+
+      libHomelab = import ./homelab/lib;
     in
     {
       nixosConfigurations = {
@@ -90,6 +92,7 @@
             extraArgs = {
               inventory = import ./homelab/deploy/prod/inventory.nix;
               nodes = colmena.lib.makeHive self.infra.prod.colmena;
+              inherit libHomelab;
             };
           };
         };

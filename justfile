@@ -167,14 +167,24 @@ ls-nodes env="stg":
 
     printf '%s\n' $nodes
 
+[arg('env', long, pattern=env_pattern)]
+[group('homelab')]
+_build_tf_config env="stg":
+    nix build -o homelab/deploy/{{ env }}/config.tf.json.tmp .#infra.{{ env }}.tf
+    cp homelab/deploy/{{ env }}/config.tf.json.tmp homelab/deploy/{{ env }}/config.tf.json
+    chmod 0600 homelab/deploy/{{ env }}/config.tf.json
+    rm homelab/deploy/{{ env }}/config.tf.json.tmp
+
+# run terraform commands within a given environment
+[arg('env', long, pattern=env_pattern)]
+[group('homelab')]
+tf env="stg" +ARGS: (_build_tf_config env)
+    terraform -chdir=homelab/deploy/{{ env }} {{ ARGS }}
+
 # deploy infra changes for a given environment (colmena + tf)
 [arg('env', long, pattern=env_pattern)]
 [group('homelab')]
-deploy env="stg":
-    nix build -o homelab/deploy/{{ env }}/config.tf.json.tmp .#infra.{{ env }}.tf
-    cp homelab/deploy/{{ env }}/config.tf.json.tmp homelab/deploy/{{ env }}/config.tf.json
-    rm homelab/deploy/{{ env }}/config.tf.json.tmp
-
+deploy env="stg": (_build_tf_config env)
     terraform -chdir=homelab/deploy/{{ env }} apply
     colmena apply -f homelab/deploy/{{ env }}/hive.nix
 
