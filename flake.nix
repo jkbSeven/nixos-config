@@ -87,7 +87,7 @@
           tf = terranix.lib.terranixConfiguration {
             system = linuxSystem;
             modules = [
-              ./homelab/deploy/prod/tf.nix
+              ./homelab/deploy/prod/tf/main.nix
             ];
             extraArgs = {
               inventory = import ./homelab/deploy/prod/inventory.nix;
