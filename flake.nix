@@ -72,6 +72,15 @@
         };
       };
 
+      /*
+        Unfortunately it's not possible to point colmena to a different flake output,
+        hence the workaround with `hive.nix` files in each deploy env (e.g. homelab/deploy/prod/hive.nix)
+
+        `colmena` must be a plain attr set here, because that's what `colmena --config /path/to/hive.nix` requires
+        Using `colmena.lib.makeHive` in this setup results in an instant error
+        However, the terranix configuration needs the evaluated hive to harvest some configuration options
+        and it's ok to pass an evaluated hive there like that, no CLI involved
+      */
       infra = {
         prod = {
           colmena = {
