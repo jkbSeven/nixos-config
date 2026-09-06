@@ -11,7 +11,7 @@ rec {
 
   nodes = {
     proxy = {
-      ip = "${baseIP}.223";
+      ip = "${baseIP}.12";
       mac = "${baseProxmoxMAC}:00:00:01";
       roles = [ roles.proxy ];
       vm = {
@@ -23,7 +23,7 @@ rec {
     };
 
     monitoring = {
-      ip = "${baseIP}.163";
+      ip = "${baseIP}.13";
       mac = "${baseProxmoxMAC}:00:00:02";
       roles = [ roles.monitoring ];
       vm = {
@@ -35,7 +35,7 @@ rec {
     };
 
     drive = {
-      ip = "${baseIP}.77";
+      ip = "${baseIP}.14";
       mac = "${baseProxmoxMAC}:00:00:03";
       roles = [ roles.nextcloud ];
       vm = {
@@ -50,7 +50,7 @@ rec {
       ip = "${baseIP}.11";
       mac = "c8:ff:bf:03:7c:fc";
       roles = [ ];
-      vm = null; # not managed through terraform
+      vm = null;
       tags = [ ];
     };
 
@@ -68,7 +68,7 @@ rec {
   );
 
   extraProxyVHosts = {
-    "proxmox" = {
+    "proxmox.${domain}" = {
       locations."/" = {
         proxyPass = "https://proxmox.srv.jkb7.dev:8006";
         proxyWebsockets = true;
@@ -76,7 +76,7 @@ rec {
       };
     };
 
-    "photos" = {
+    "photos.${domain}" = {
       /*
       Added to mitigate ambiguous errors when uploading big files:
           client_max_body_size 4G;

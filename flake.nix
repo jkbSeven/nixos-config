@@ -82,7 +82,20 @@
         and it's ok to pass an evaluated hive there like that, no CLI involved
       */
       infra = {
-        prod = {
+        prod =
+        let
+          inventory = import ./homelab/deploy/prod/inventory.nix;
+          mkNode = libHomelab.mkNode {
+            inherit inventory;
+            modules = [
+              ./hosts/vm.nix
+              ./homelab/modules
+              agenix.nixosModules.default
+            ];
+            root = self;
+          };
+        in
+        {
           colmena = {
             meta = {
               nixpkgs = import nixpkgs {
@@ -90,8 +103,8 @@
                 overlays = [ ];
               };
             };
-          };
-          # // builtins.mapAttrs mkNode inventory.nodes
+          }
+          // builtins.mapAttrs mkNode inventory.nodes;
 
           tf = terranix.lib.terranixConfiguration {
             system = linuxSystem;

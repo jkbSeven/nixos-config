@@ -31,6 +31,7 @@ in
   services.prometheus.exporters.node = {
     enable = true;
     openFirewall = true;
+    port = 9100;
   };
 
   homelab.monitoring.scrapeTargets = [

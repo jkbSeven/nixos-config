@@ -1,19 +1,17 @@
 let
-  root = ./../../..;
-  envRoot = ./..;
-  libHomelab = import (root + "/lib");
-  inventory = import (envRoot + "/inventory.nix");
+  libHomelab = import ../../../lib;
+  inventory = import ../inventory.nix;
+
   nodes = inventory.nodes;
   roles = inventory.roles;
 
   admin = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAGUyXopT6n4AgbFY4E2Xgf753xESReel5p45qDYIRaV";
   admins = [ admin ];
 
-  nixosNodes = libHomelab.filterAttrs (nodeName: nodeConfig: nodeConfig.vm != null) nodes;
-  nixosNodesNames = builtins.attrNames nixosNodes;
+  nixosNodesNames = builtins.attrNames (libHomelab.filterNonNixosNodes nodes);
 
   publicKeyPerNode = builtins.listToAttrs (
-    map (nodeName: { name = nodeName; value = (builtins.readFile (envRoot + "/keys" + "/node-${nodeName}.host_ssh.pub")); }) nixosNodesNames
+    map (nodeName: { name = nodeName; value = (builtins.readFile (./.. + "/keys" + "/${nodeName}.pub")); }) nixosNodesNames
   );
 
   publicKeyForRole = role: publicKeyPerNode."${(libHomelab.nodeFromRole role inventory).name}";
