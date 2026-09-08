@@ -1,21 +1,19 @@
 /*
-Source of truth for all homelab nodes.
-
-A role is a set of toggles for homelab services, e.g. "proxy" for nginx, "monitoring" for VictoriaMetrics + Grafana.
-Machines are provisioned through terraform (terranix), hence the `vm` attribute set.
-
-Future extensions:
-- VPN mesh (adds `meshIp` and enables multi-cloud setups)
-- Config options for moving some nodes to public cloud (cloud = { provider; instanceType; })
+  Source of truth for homelab infrastructure.
 */
 
-{
+let
+  baseProxmoxMAC = "bc:24:11:10";
+  baseIP = "10.10.10";
+in
+rec {
   domain = "jkb7.dev";
-  nodes = {
 
+  nodes = {
     proxy = {
-      ip = "10.10.10.223";
-      roles = [ "proxy" ];
+      ip = "${baseIP}.15";
+      mac = "${baseProxmoxMAC}:00:01";
+      roles = [ roles.proxy ];
       vm = {
         cores = 2;
         memory = 4096;
@@ -25,8 +23,9 @@ Future extensions:
     };
 
     monitoring = {
-      ip = "10.10.10.163";
-      roles = [ "monitoring" ];
+      ip = "${baseIP}.13";
+      mac = "${baseProxmoxMAC}:00:02";
+      roles = [ roles.monitoring ];
       vm = {
         cores = 4;
         memory = 4096;
@@ -36,8 +35,9 @@ Future extensions:
     };
 
     drive = {
-      ip = "10.10.10.77";
-      roles = [ "nextcloud" ];
+      ip = "${baseIP}.14";
+      mac = "${baseProxmoxMAC}:00:03";
+      roles = [ roles.nextcloud ];
       vm = {
         cores = 2;
         memory = 4096;
@@ -47,16 +47,28 @@ Future extensions:
     };
 
     nas = {
-      ip = "10.10.10.11";
+      ip = "${baseIP}.11";
+      mac = "c8:ff:bf:03:7c:fc";
       roles = [ ];
-      vm = null; # not managed through terraform
+      vm = null;
       tags = [ ];
     };
 
   };
 
+  users = {
+    nextcloud = {
+      uid = 4000;
+      gid = 4000;
+    };
+  };
+
+  roles = builtins.listToAttrs (
+    map (roleName: { name = roleName; value = roleName; }) ["proxy" "monitoring" "nextcloud"]
+  );
+
   extraProxyVHosts = {
-    "proxmox" = {
+    "proxmox.${domain}" = {
       locations."/" = {
         proxyPass = "https://proxmox.srv.jkb7.dev:8006";
         proxyWebsockets = true;
@@ -64,7 +76,7 @@ Future extensions:
       };
     };
 
-    "photos" = {
+    "photos.${domain}" = {
       /*
       Added to mitigate ambiguous errors when uploading big files:
           client_max_body_size 4G;

@@ -39,7 +39,7 @@
 
   services.qemuGuest.enable = true;
 
-  virtualisation.diskSize = 16384; # in MiB
+  virtualisation.diskSize = 8192; # in MiB
 
   image.modules.proxmox = {
     proxmox.qemuConf = {

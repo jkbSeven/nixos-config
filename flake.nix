@@ -14,6 +14,16 @@
       url = "github:zhaofengli/colmena/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    terranix = {
+      url = "github:terranix/terranix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -23,29 +33,20 @@
       nixpkgs-unstable,
       home-manager,
       colmena,
+      terranix,
+      agenix,
       ...
     }:
     let
-      system = "x86_64-linux";
-
+      linuxSystem = "x86_64-linux";
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
 
-      mylib = import ./homelab/lib;
-      inventory = import ./homelab/inventory.nix;
-      users = import ./homelab/users.nix;
-      mkNode = mylib.mkNode {
-        inherit users inventory;
-        modules = [
-          ./homelab/modules
-          ./hosts/vm.nix
-        ];
-        root = self;
-      };
+      libHomelab = import ./homelab/lib;
     in
     {
       nixosConfigurations = {
         thinkpad6 = nixpkgs-unstable.lib.nixosSystem {
-          inherit system;
+          system = linuxSystem;
           modules = [
             ./hosts/thinkpad6/configuration.nix
             home-manager.nixosModules.home-manager
@@ -54,7 +55,7 @@
         };
 
         pc = nixpkgs-unstable.lib.nixosSystem {
-          inherit system;
+          system = linuxSystem;
           modules = [
             ./hosts/pc/configuration.nix
             home-manager.nixosModules.home-manager
@@ -63,7 +64,7 @@
         };
 
         vm-base = nixpkgs.lib.nixosSystem {
-          inherit system;
+          system = linuxSystem;
 
           modules = [
             ./hosts/vm.nix
@@ -71,41 +72,87 @@
         };
       };
 
+      /*
+        Unfortunately it's not possible to point colmena to a different flake output,
+        hence the workaround with `hive.nix` files in each deploy env (e.g. homelab/deploy/prod/hive.nix)
+
+        `colmena` must be a plain attr set here, because that's what `colmena --config /path/to/hive.nix` requires
+        Using `colmena.lib.makeHive` in this setup results in an instant error
+        However, the terranix configuration needs the evaluated hive to harvest some configuration options
+        and it's ok to pass an evaluated hive there like that, no CLI involved
+      */
+      infra = {
+        prod =
+        let
+          inventory = import ./homelab/deploy/prod/inventory.nix;
+          mkNode = libHomelab.mkNode {
+            inherit inventory;
+            modules = [
+              ./hosts/vm.nix
+              ./homelab/modules
+              agenix.nixosModules.default
+            ];
+            root = self;
+          };
+        in
+        {
+          colmena = {
+            meta = {
+              nixpkgs = import nixpkgs {
+                system = linuxSystem;
+                overlays = [ ];
+              };
+            };
+          }
+          // builtins.mapAttrs mkNode inventory.nodes;
+
+          tf = terranix.lib.terranixConfiguration {
+            system = linuxSystem;
+            modules = [
+              ./homelab/deploy/prod/tf/main.nix
+            ];
+            extraArgs = {
+              inventory = import ./homelab/deploy/prod/inventory.nix;
+              evaluatedNodes = colmena.lib.makeHive self.infra.prod.colmena;
+              inherit libHomelab;
+            };
+          };
+        };
+      };
+
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs-unstable {
+            inherit system;
+            config.allowUnfreePredicate =
+              pkg:
+              builtins.elem (nixpkgs-unstable.lib.getName pkg) [
+                "terraform"
+              ];
+          };
+        in
+        rec {
+          default = deploy;
+          deploy = pkgs.mkShellNoCC {
+            packages = [
+              pkgs.just
+              pkgs.jq
+
+              pkgs.colmena
+              pkgs.terraform
+              agenix.packages.${system}.default
+            ];
+          };
+        }
+      );
+
       templates = {
         C = {
           path = ./templates/C;
           description = "Baseline C env for Linux with gcc and clang";
         };
       };
-
-      colmenaHive = colmena.lib.makeHive (
-        {
-          meta = {
-            nixpkgs = import nixpkgs {
-              system = "x86_64-linux";
-              overlays = [ ];
-            };
-          };
-        }
-        // builtins.mapAttrs mkNode inventory.nodes
-      );
-
-      devShells = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        rec {
-          default = deploy;
-          deploy = pkgs.mkShellNoCC {
-            packages = [
-              pkgs.colmena
-              pkgs.guestfs-tools # for virt-customize
-              pkgs.just
-            ];
-          };
-        }
-      );
 
       formatter = forAllSystems (
         system:
