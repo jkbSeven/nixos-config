@@ -2,12 +2,35 @@
   lib,
   libHomelab,
   inventory,
-  nodes,
+  evaluatedNodes,
   ...
 }:
 let
-  nixosNodes = libHomelab.filterAttrs (nodeName: nodeConfig: nodeConfig.vm != null) inventory.nodes;
+  nixosNodes = libHomelab.filterNonNixosNodes inventory.nodes;
   proxmoxEndpoint = "https://10.10.10.10:8006";
+  unifiEndpoint = "https://10.10.0.1";
+
+  nodesDNSRecords = builtins.mapAttrs (name: node:
+    {
+      name = "${name}.srv.${inventory.domain}";
+      type = "A";
+      record = node.ip;
+      ttl = 0;
+    }) inventory.nodes;
+
+  proxyIP = libHomelab.ipFromRole "proxy" inventory;
+  virtualHostsNames = builtins.attrNames evaluatedNodes.nodes.proxy.config.services.nginx.virtualHosts;
+  proxiedDNSRecords = builtins.listToAttrs (map (vhost:
+    {
+      name = builtins.replaceStrings ["."] ["-"] vhost;
+      value = {
+        name = vhost;
+        type = "A";
+        record = proxyIP;
+        ttl = 0;
+      };
+    }) virtualHostsNames);
+
 in
 {
 
@@ -37,6 +60,7 @@ in
     };
   };
 
+
   resource.proxmox_virtual_environment_file.base-nixos-image = {
     content_type = "import";
     datastore_id = "local";
@@ -50,6 +74,8 @@ in
 
   resource.proxmox_virtual_environment_vm = builtins.mapAttrs (name: node:
     {
+      depends_on = [ "unifi_user.${name}" ];
+
       inherit name;
       node_name = "proxmox-um790";
       # vm_id = ...;
@@ -94,7 +120,6 @@ in
         }
       ];
 
-
     }) nixosNodes;
 
   resource.terraform_data = builtins.mapAttrs (name: _:
@@ -137,4 +162,57 @@ in
       };
 
     }) nixosNodes;
+
+/*
+  Terraform resources for Unifi
+  FIXME: move to a separate file and import here
+*/
+
+  terraform.required_providers.unifi = {
+    source = "filipowm/unifi";
+    version = "1.1.0";
+  };
+
+  variable.unifi_api_token = {
+    type = "string";
+    sensitive = true;
+  };
+
+  provider.unifi = {
+    api_url = unifiEndpoint;
+    api_key = "\${var.unifi_api_token}";
+    allow_insecure = true;
+  };
+
+  resource.unifi_network.services = {
+    name = "services";
+    subnet = "10.10.10.1/24";
+    vlan_id = 3919;
+
+    # regular full access network
+    # https://registry.terraform.io/providers/filipowm/unifi/latest/docs/resources/network#purpose-1
+    purpose = "corporate";
+
+    dhcp_enabled = true;
+    dhcp_start = "10.10.10.6";
+    dhcp_stop = "10.10.10.254";
+
+    dhcp_v6_enabled = false;
+    dhcp_v6_dns_auto = false;
+    ipv6_ra_enable = true;
+    ipv6_ra_valid_lifetime = 0;
+  };
+
+  resource.unifi_user = builtins.mapAttrs (name: node:
+    {
+      inherit name;
+      mac = node.mac;
+      fixed_ip = node.ip;
+      network_id = "\${unifi_network.services.id}";
+      allow_existing = true;
+
+      note = "Homelab node '${name}', managed through terraform";
+    }) inventory.nodes;
+
+  resource.unifi_dns_record = nodesDNSRecords // proxiedDNSRecords;
 }

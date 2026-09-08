@@ -3,7 +3,7 @@
 */
 
 let
-  baseProxmoxMAC = "BC:24:11";
+  baseProxmoxMAC = "bc:24:11:10";
   baseIP = "10.10.10";
 in
 rec {
@@ -11,8 +11,8 @@ rec {
 
   nodes = {
     proxy = {
-      ip = "${baseIP}.12";
-      mac = "${baseProxmoxMAC}:00:00:01";
+      ip = "${baseIP}.15";
+      mac = "${baseProxmoxMAC}:00:01";
       roles = [ roles.proxy ];
       vm = {
         cores = 2;
@@ -24,7 +24,7 @@ rec {
 
     monitoring = {
       ip = "${baseIP}.13";
-      mac = "${baseProxmoxMAC}:00:00:02";
+      mac = "${baseProxmoxMAC}:00:02";
       roles = [ roles.monitoring ];
       vm = {
         cores = 4;
@@ -36,7 +36,7 @@ rec {
 
     drive = {
       ip = "${baseIP}.14";
-      mac = "${baseProxmoxMAC}:00:00:03";
+      mac = "${baseProxmoxMAC}:00:03";
       roles = [ roles.nextcloud ];
       vm = {
         cores = 2;

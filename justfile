@@ -16,7 +16,10 @@ default_env := "stg"
 [group('homelab')]
 build-vm-image output="result" copy_to_deploy_dir="1":
     nix build -o "{{ output }}" .#nixosConfigurations.vm-base.config.system.build.images.qemu
-    @if [ {{ copy_to_deploy_dir }} -eq 1 ]; then cp {{ output }}/nixos*.qcow2 homelab/deploy/base.qcow2; fi
+    @if [ {{ copy_to_deploy_dir }} -eq 1 ]; then \
+        cp {{ output }}/nixos*.qcow2 homelab/deploy/base.qcow2; \
+        chmod 0600 homelab/deploy/base.qcow2; \
+    fi
 
 # list all declared nodes for a given environment
 [arg('env', long, pattern=env_pattern)]

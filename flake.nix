@@ -113,7 +113,7 @@
             ];
             extraArgs = {
               inventory = import ./homelab/deploy/prod/inventory.nix;
-              nodes = colmena.lib.makeHive self.infra.prod.colmena;
+              evaluatedNodes = colmena.lib.makeHive self.infra.prod.colmena;
               inherit libHomelab;
             };
           };
@@ -140,11 +140,7 @@
               pkgs.jq
 
               pkgs.colmena
-              pkgs.libguestfs-with-appliance # for guestfish
-              (pkgs.terraform.withPlugins (p: [
-                p.bpg_proxmox
-                p.ubiquiti-community_unifi
-              ]))
+              pkgs.terraform
               agenix.packages.${system}.default
             ];
           };
